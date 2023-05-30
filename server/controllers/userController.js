@@ -1,7 +1,16 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
-const generateToken = require("../config/generateToken")
+const generateToken = require("../config/generateToken");
+// const Token = require("../models/tokenModel");
+// const bcrypt = require("bcrypt");
+// const sendEmail = require("../utils/email/sendEmail");
+const {
+  requestPasswordReset,
+  resetPassword,
+} = require("../services/authService");
 
+// const clientURL = process.env.CLIENT_URL;
+// const bcryptSalt = process.env.BCRYPT_SALT;
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, pic } = req.body;
@@ -39,7 +48,6 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -60,4 +68,32 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, authUser };
+const resetPasswordRequestController = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+  
+    const requestPasswordResetService = await requestPasswordReset(email);
+    if (!requestPasswordResetService) {
+      res.status(401);
+      throw new Error("Email does not exist");
+    }
+  
+    return res.json(requestPasswordResetService);
+  });
+  
+  const resetPasswordController = asyncHandler(async (req, res) => {
+    const {userId,token,password} = req.body;
+    const resetPasswordService = await resetPassword(
+      userId,
+      token,
+      password,
+    );
+  
+    return res.json(resetPasswordService);
+  });
+
+module.exports = {
+  registerUser,
+  authUser,
+  resetPasswordRequestController,
+  resetPasswordController,
+};
