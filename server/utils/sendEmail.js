@@ -9,7 +9,7 @@ const sendEmail = async (email, subject, payload, template) => {
     try {
       // create reusable transporter object using the default SMTP transport
       const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
+        host: 'smtp.gmail.com',
         port: 465,
         auth: {
           user: process.env.EMAIL_USERNAME,
@@ -42,15 +42,5 @@ const sendEmail = async (email, subject, payload, template) => {
       return error;
     }
   };
-  
-  /*
-  Example:
-  sendEmail(
-    "youremail@gmail.com,
-    "Email subject",
-    { name: "Eze" },
-    "./templates/layouts/main.handlebars"
-  );
-  */
   
   module.exports = sendEmail;
