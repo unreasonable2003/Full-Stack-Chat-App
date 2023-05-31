@@ -69,31 +69,43 @@ const authUser = asyncHandler(async (req, res) => {
 });
 
 const resetPasswordRequestController = asyncHandler(async (req, res) => {
-    const { email } = req.body;
-  
-    const requestPasswordResetService = await requestPasswordReset(email);
-    if (!requestPasswordResetService) {
-      res.status(401);
-      throw new Error("Email does not exist");
-    }
-  
-    return res.json(requestPasswordResetService);
-  });
-  
-  const resetPasswordController = asyncHandler(async (req, res) => {
-    const {userId,token,password} = req.body;
-    const resetPasswordService = await resetPassword(
-      userId,
-      token,
-      password,
-    );
-  
-    return res.json(resetPasswordService);
-  });
+  const { email } = req.body;
+
+  const requestPasswordResetService = await requestPasswordReset(email);
+  if (!requestPasswordResetService) {
+    res.status(401);
+    throw new Error("Email does not exist");
+  }
+
+  return res.json(requestPasswordResetService);
+});
+
+const resetPasswordController = asyncHandler(async (req, res) => {
+  const { userId, token, password } = req.body;
+  const resetPasswordService = await resetPassword(userId, token, password);
+
+  return res.json(resetPasswordService);
+});
+
+const allUsers = asyncHandler(async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  res.send(users);
+});
+
 
 module.exports = {
   registerUser,
   authUser,
   resetPasswordRequestController,
   resetPasswordController,
+  allUsers,
 };
