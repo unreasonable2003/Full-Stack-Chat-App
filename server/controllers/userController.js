@@ -13,22 +13,23 @@ const {
 // const bcryptSalt = process.env.BCRYPT_SALT;
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, pic } = req.body;
+  const { name, email, password, pic, username } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !username) {
     res.status(400);
     throw new Error("Please Enter all the Fields");
   }
 
   const userExists = await User.findOne({ email });
-
-  if (userExists) {
+  const userNameExists = await User.findOne({ username });
+  if (userExists || userNameExists) {
     res.status(400);
     throw new Error("User already exists");
   }
 
   const user = await User.create({
     name,
+    username,
     email,
     password,
     pic,
@@ -38,6 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(201).json({
       _id: user._id,
       name: user.name,
+      username: user.username,
       email: user.email,
       pic: user.pic,
       token: generateToken(user._id),
@@ -57,6 +59,7 @@ const authUser = asyncHandler(async (req, res) => {
     res.json({
       _id: user._id,
       name: user.name,
+      username: user.username,
       email: user.email,
       isAdmin: user.isAdmin,
       pic: user.pic,
@@ -91,8 +94,8 @@ const allUsers = asyncHandler(async (req, res) => {
   const keyword = req.query.search
     ? {
         $or: [
+          { username: { $regex: req.query.search, $options: "i" } },
           { name: { $regex: req.query.search, $options: "i" } },
-          { email: { $regex: req.query.search, $options: "i" } },
         ],
       }
     : {};
